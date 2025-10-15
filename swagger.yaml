@@ -1,0 +1,257 @@
+openapi: 3.0.0
+info:
+  title: Subscription Management API
+  version: 1.1.0
+  description: REST API для управления пользовательскими подписками
+
+servers:
+  - url: http://localhost:8081
+    description: Local Docker server
+
+tags:
+  - name: subscriptions
+    description: Операции с подписками пользователей
+
+paths:
+  /subscriptions:
+    post:
+      tags:
+        - subscriptions
+      summary: Создать новую подписку
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscriptionInput'
+            example:
+              user_id: f1e8b7d3-1b44-4a12-8a0f-3b2b2bbcb828
+              ServiceName: Netflixx
+              price: "13533"
+              start_date: "2026-06-15T00:00:00Z"
+      responses:
+        '201':
+          description: Подписка успешно создана
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: succeeded
+                  id:
+                    type: string
+                    example: f1037ae4-0c54-4521-bffd-d3d2e5653990
+        '400':
+          description: Ошибка в теле запроса
+        '500':
+          description: Ошибка сервера
+
+    get:
+      tags:
+        - subscriptions
+      summary: Получить список всех подписок
+      description: Все параметры необязательны, можно просто вызвать без query.
+      parameters:
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: string
+            example: "2025-01-01"
+        - name: to
+          in: query
+          required: false
+          schema:
+            type: string
+            example: "2025-12-31"
+        - name: user_id
+          in: query
+          required: false
+          schema:
+            type: string
+            example: "60601fee-2bf1-4721-ae6f-7636e79a0cba"
+        - name: service_name
+          in: query
+          required: false
+          schema:
+            type: string
+            example: "Netflix"
+      responses:
+        '200':
+          description: Список подписок
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Subscription'
+        '500':
+          description: Ошибка при получении данных
+
+  /subscriptions/{id}:
+    get:
+      tags:
+        - subscriptions
+      summary: Получить подписку по ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: 60601fee-2bf1-4721-ae6f-7636e79a0cba
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+        '404':
+          description: Подписка не найдена
+
+    put:
+      tags:
+        - subscriptions
+      summary: Обновить подписку по ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: f1037ae4-0c54-4521-bffd-d3d2e5653990
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscriptionInput'
+            example:
+              user_id: f1e8b7d3-1b44-4a12-8a0f-3b2b2bbcb828
+              ServiceName: SLAKGLKGAJ:SGL:LSGL:SG:GLSA:LSG
+              price: "13533"
+              start_date: "2026-06-15T00:00:00Z"
+      responses:
+        '200':
+          description: Успешное обновление
+        '400':
+          description: Ошибка в запросе
+        '404':
+          description: Подписка не найдена
+
+    delete:
+      tags:
+        - subscriptions
+      summary: Удалить подписку по ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: a3221adc-1734-4957-a3cb-ccd11056e5ae
+      responses:
+        '204':
+          description: Подписка успешно удалена
+        '404':
+          description: Подписка не найдена
+        '500':
+          description: Ошибка базы данных
+
+  /subscriptions/sum:
+    get:
+      tags:
+        - subscriptions
+      summary: Получить сумму подписок за период
+      parameters:
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+            example: "2025-01-01"
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+            example: "2025-12-31"
+        - name: user_id
+          in: query
+          required: false
+          schema:
+            type: string
+            example: "60601fee-2bf1-4721-ae6f-7636e79a0cba"
+        - name: service_name
+          in: query
+          required: false
+          schema:
+            type: string
+            example: "Yandex Plus"
+      responses:
+        '200':
+          description: Сумма подписок
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sum:
+                    type: number
+                    example: 2467.00
+        '400':
+          description: Неверный формат периода
+        '500':
+          description: Ошибка сервера
+
+components:
+  schemas:
+    Subscription:
+      type: object
+      properties:
+        id:
+          type: string
+          example: f1037ae4-0c54-4521-bffd-d3d2e5653990
+        user_id:
+          type: string
+          example: f1e8b7d3-1b44-4a12-8a0f-3b2b2bbcb828
+        ServiceName:
+          type: string
+          example: Netflix
+        price:
+          type: string
+          example: "13533"
+        start_date:
+          type: string
+          format: date-time
+          example: "2026-06-15T00:00:00Z"
+        end_date:
+          type: string
+          format: date-time
+          nullable: true
+          example: "2027-06-15T00:00:00Z"
+
+    SubscriptionInput:
+      type: object
+      required:
+        - user_id
+        - ServiceName
+        - price
+        - start_date
+      properties:
+        user_id:
+          type: string
+          example: f1e8b7d3-1b44-4a12-8a0f-3b2b2bbcb828
+        ServiceName:
+          type: string
+          example: Netflixx
+        price:
+          type: string
+          example: "13533"
+        start_date:
+          type: string
+          format: date-time
+          example: "2026-06-15T00:00:00Z"
